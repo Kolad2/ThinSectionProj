@@ -17,16 +17,6 @@ from scipy.optimize import minimize
 
 
 from .distrebutions import *
-import SE
-
-
-
-def FPM(x,a,scale):
-    mA = 1/A(a)
-    if x >= scale:
-        return 1 - (mA/(a-1))*(x / scale)**(1 - a)
-    else:
-        return (mA/a)*np.exp(a)*(1 - np.exp(-a * (x / scale)))
 
 def pareto(x, a, xmin):
     return ((a-1)/xmin)*((x/xmin)**(-a))
@@ -71,17 +61,16 @@ class Targets:
 
     def lognorm(self, s, scale):
         dist = st.lognorm(s, 0, scale)
-        Fmin = dist.cdf(self.xmin)
-        Fmax = dist.cdf(self.xmax)
+        cdf_min = dist.cdf(self.xmin)
+        cdf_max = dist.cdf(self.xmax)
         mu = math.log(scale)
         part1 = -np.log(s) - self.SlnX2 / (2 * (s ** 2))
         part2 = (2 * mu * self.SlnX - mu ** 2) / (2 * (s ** 2))
-        part3 = -np.log(Fmax - Fmin)
+        part3 = -np.log(cdf_max - cdf_min)
         return part1 + part2 + part3
 
     def expon(self, scale):
         Fmin = 1 - np.exp(self.xmin / scale)
-
         S = - self.SX / scale - np.log(scale) - xmin / scale
         return S
 
@@ -96,12 +85,12 @@ class Targets:
         part4 = -np.log(np.exp(-(self.xmin / scale)**alpha) - np.exp(-(self.xmax / scale)**alpha))
         return part1 + part2 + part3 + part4
 
-    def paretomodif(self, a, xg):
-        part1 = - np.log(xg) - np.log(A(a))
-        part2 = -(a/self.n)*np.sum(self.X[self.X < xg]/xg - 1)
-        part3 = -(a/self.n)*np.sum(np.log(self.X[self.X >= xg]/xg))
-        Fmin = FPM(self.xmin, a, xg)
-        Fmax = FPM(self.xmax, a, xg)
+    def paretomod(self, a, scale):
+        part1 = - np.log(scale) - np.log(A(a))
+        part2 = -(a/self.n)*np.sum(self.X[self.X < scale]/scale - 1)
+        part3 = -(a/self.n)*np.sum(np.log(self.X[self.X >= scale]/scale))
+        Fmin = cdf_paretomod(self.xmin, a, scale)
+        Fmax = cdf_paretomod(self.xmax, a, scale)
         part4 = -np.log(Fmax - Fmin)
         return part1 + part2 + part3 + part4
 

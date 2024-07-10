@@ -45,7 +45,7 @@ class MLE:
 
     def ParetoMod(self):
         a = 1 + 1 / (np.mean(np.log(self.X)) - np.log(self.xmin))
-        res = minimize(lambda x: -self.TG.paretomodif(x[0], x[1]),
+        res = minimize(lambda x: -self.TG.paretomod(x[0], x[1]),
                        [a, self.xmin], bounds=((1 + 1e-3, None), (self.xmin, self.xmax)),
                        method='Nelder-Mead', tol=1e-3)
         return res.x[0], 0, res.x[1]
