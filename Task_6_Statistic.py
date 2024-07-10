@@ -20,7 +20,7 @@ import cv2
 import pandas as pd
 import SE.StatisticEstimation as SE
 
-
+import SE
 
 StatisticPath = "/media/kolad/HardDisk/StatisticData/"
 Path0 = "/media/kolad/HardDisk/ThinSection"
@@ -95,14 +95,14 @@ for i0, FileName in enumerate(FileNames):
     f = [[] for i in range(0,4)]
 
     full_hS = np.concatenate(hS)
-    theta[0] = SE.GetThetaLognorm(hS[0], xmin, max(hS[0]))
-    theta[1] = SE.GetThetaWeibull(hS[0], xmin, max(hS[0]))
-    theta[2] = SE.GetThetaParetoModif(hS[0], xmin, max(hS[0]))
+
+    theta[0] = SE.MLE(hS[0], xmin, max(hS[0])).Lognorm()
+    theta[1] = SE.MLE(hS[0], xmin, max(hS[0])).Weibull()
+    theta[2] = SE.MLE(hS[0], xmin, max(hS[0])).ParetoMod()
 
     print("Lognorm", theta[0])
     print("Weibull", theta[1])
-    print("ParetoModif", theta[2])
-
+    print("ParetoMod", theta[2])
     dist[0] = st.lognorm(theta[0][0], 0, theta[0][2])
 
     f[0] = dist[0].pdf(f_bins)/(1 - dist[0].cdf(xmin))

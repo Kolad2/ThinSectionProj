@@ -15,10 +15,9 @@ from scipy.special import gamma
 import scipy.optimize as opt
 from scipy.optimize import minimize
 
-import warnings
-warnings.filterwarnings('error')
 
 from .distrebutions import *
+import SE
 
 
 
@@ -106,66 +105,7 @@ class Targets:
         part4 = -np.log(Fmax - Fmin)
         return part1 + part2 + part3 + part4
 
-class MLE:
-    def __init__(self, X, xmin, xmax):
-        self.TG = Targets(X, xmin, xmax)
-        self.X = X
-        self.xmin = xmin
-        self.xmax = xmax
 
-
-    def Lognorm(self):
-        theta = st.lognorm.fit(X, floc=0)
-        res = minimize(lambda x: -self.TG.lognorm(x[0], x[1]),
-                       [theta[0], theta[2]],
-                       bounds=((1e-3, None), (1e-3, xmax)),
-                       method='Nelder-Mead', tol=1e-3)
-        return res.x[0], 0, res.x[1]
-
-
-
-
-def GetThetaLognorm(X, xmin, xmax):
-    theta = st.lognorm.fit(X, floc=0)
-    Tg = Targets(X, xmin, xmax)
-    res = minimize(lambda x: -Tg.lognorm(x[0], x[1]),
-                   [theta[0], theta[2]],
-                   bounds=((1e-3, None), (1e-3, xmax)),
-                   method='Nelder-Mead', tol=1e-3)
-    return res.x[0], 0, res.x[1]
-
-def GetThetaExpon(X, xmin, xmax):
-    theta = st.expon.fit(X, floc=0)
-    Tg = Targets(X, xmin, xmax)
-    res = minimize(lambda x: -Tg.expon(x),
-                   theta[1],
-                   method='Nelder-Mead', tol=1e-3)
-    return 0, res.x[0]
-
-def GetThetaWeibull(X, xmin, xmax):
-    theta = st.weibull_min.fit(X, floc=0)
-    #print(theta)
-    Tg = Targets(X, xmin, xmax)
-    res = minimize(lambda x: -Tg.weibull(x[0], x[1]),
-                   [theta[0], theta[2]], bounds=((1e-3, None), (1e-3, xmax)),
-                   method='Nelder-Mead', tol=1e-3)
-    return res.x[0], 0, res.x[1]
-
-def GetThetaPareto(X, xmin, xmax):
-    a = 1 + 1 / (np.mean(np.log(X)) - np.log(xmin))
-    Tg = Targets(X, xmin, xmax)
-    res = minimize(lambda x: -Tg.pareto(x[0], x[1]),
-                   [2, xmin/2], bounds=((1+1e-3, None), (0, xmin)),
-                   method='Nelder-Mead', tol=1e-3)
-    return res.x[0], 0, res.x[1]
-
-def GetThetaParetoModif(X, xmin, xmax):
-    a = 1 + 1 / (np.mean(np.log(X)) - np.log(xmin))
-    Tg = Targets(X, xmin, xmax)
-    res = minimize(lambda x: -Tg.paretomodif(x[0], x[1]),
-                   [a, xmin], bounds=((1+1e-3, None), (xmin, xmax)),
-                   method='Nelder-Mead', tol=1e-3)
-    return res.x[0], 0, res.x[1]
 
 def GetF(S, xmin, xmax=10 ** 10):
     F_bins, F = np.unique(S, return_counts=True)
