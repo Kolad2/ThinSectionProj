@@ -22,7 +22,7 @@ def pareto(x, a, xmin):
     return ((a-1)/xmin)*((x/xmin)**(-a))
 
 
-def get_ecdf(X, xmin=None):
+def get_ecdf(X, xmin=None, xmax=None):
     if xmin is not None:
         X = np.append(X, xmin)
     X, C = np.unique(X, return_counts=True)
