@@ -87,11 +87,12 @@ for i0, FileName in enumerate(FileNames):
     f_0_med = np.median(f_0, axis=0)
     f_0_m = np.mean(f_0, axis=0)
     f_0_sgm = np.sqrt(np.mean((f_0-f_0_m)**2, axis=0))
-    f_0_low = np.quantile(f_0, 0.01, axis=0)
-    f_0_height = np.quantile(f_0, 0.99, axis=0)
+    f_0_low = np.quantile(f_0, 0.05, axis=0)
+    f_0_height = np.quantile(f_0, 0.95, axis=0)
 
-    F_0_low = np.quantile(F_0, 0.01, axis=0)
-    F_0_height = np.quantile(F_0, 0.99, axis=0)
+    F_0_low = np.quantile(F_0, 0.05, axis=0)
+    F_0_m = np.quantile(F_0, 0.5, axis=0)
+    F_0_height = np.quantile(F_0, 0.95, axis=0)
 
     full_hS = np.concatenate(hS)
     xmax = np.max(full_hS)
@@ -139,7 +140,6 @@ for i0, FileName in enumerate(FileNames):
     Theta["Name"].append(FileName)
 
     def GetBool(L,H,F):
-        print(len(F))
         return np.sum(((L < F) & (F < H)))/len(F)
 
     mf = {}
@@ -168,21 +168,25 @@ for i0, FileName in enumerate(FileNames):
     Theta["paretomod"]["boolean"].append(B[2])
     Theta["paretomod"]["alpha"].append(theta[2][0])
     Theta["paretomod"]["lambda"].append(theta[2][2])
+    print(B)
+
+    continue
+
 
     fig = plt.figure(figsize=(10, 5))
     ax = [fig.add_subplot(1, 1, 1)]
-    ax[0].fill_between(f_bins, F_0_low, F_0_height,color='grey')
-    ax[0].plot(f_bins, F[0],color='black')
-    ax[0].plot(f_bins, F[1],color='blue')
-    ax[0].plot(f_bins, F[2],color='red')
+    ax[0].fill_between(f_bins, F_0_low - F_0_m*0,  F_0_height - F_0_m*0,color='grey')
+    ax[0].plot(f_bins, F[0] - F_0_m*0, color='black')
+    ax[0].plot(f_bins, F[1] - F_0_m*0, color='blue')
+    ax[0].plot(f_bins, F[2] - F_0_m*0, color='red')
     ax[0].set_xscale('log')
     #ax[0].set_ylim((f_0_low[-1], f_0_height[0]))
     ax[0].set_xlim((f_bins[0], f_bins[-1]))
 
     plt.show()
-    print(B)
 
     exit()
+
     #%%
     Path_img = Path_dir + "Picture" + "/" + FileName + ".tif"
     img = cv2.imread(Path_img)
@@ -239,7 +243,7 @@ with open('temp/StatisticResult.csv', 'w', encoding='UTF8', newline='') as f:
     writer = csv.writer(f)
     # write the header
     writer.writerow(header)
-    for i in range(0,len(Theta["Lognorm"]["s"])):
+    for i in range(0,len(Theta["Name"])):
         data = [Theta["Name"][i],
                 round(Theta["lognorm"]["boolean"][i], 2),
                 round(Theta["lognorm"]["sigma"][i], 2),
@@ -247,7 +251,7 @@ with open('temp/StatisticResult.csv', 'w', encoding='UTF8', newline='') as f:
                 round(Theta["weibull"]["boolean"][i], 2),
                 round(Theta["weibull"]["alpha"][i], 2),
                 round(Theta["weibull"]["lambda"][i], 2),
-                round(Theta["Pareto"]["boolean"][i], 2),
+                round(Theta["pareto"]["boolean"][i], 2),
                 round(Theta["pareto"]["alpha"][i], 2),
                 round(Theta["pareto"]["lambda"][i], 2)]
         # write the data

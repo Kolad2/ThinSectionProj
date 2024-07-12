@@ -9,10 +9,21 @@ import time
 from ThinSS import ThinSS
 from Shpreader import get_shp_poly
 import random
+import math
 
 Path0 = "/media/kolad/HardDisk/ThinSection"
+StatisticPath = "temp/"
 FileNames = os.listdir(Path0)
 intermax = 500
+
+
+if not os.path.exists(StatisticPath):
+	print("Путь статистики не существует: " + StatisticPath)
+	exit()
+else:
+	if not os.path.exists(StatisticPath + "StatisticSintData"):
+		os.mkdir(StatisticPath + "StatisticSintData")
+
 
 for FileName in FileNames:
 	print("Start", FileName)
@@ -53,13 +64,13 @@ for FileName in FileNames:
 	S = []
 	P = []
 	for i in range(0, intermax, 1):
-		b = random.randint(0, 19)
 		print(FileName, i, "/", intermax, flush=True)
 		polys = get_shp_poly(Path_shape)
 		result_line = np.zeros(img.shape[0:2], dtype=np.uint8)
 		polys2 = []
+		xi = 0.3 * math.sqrt(random.uniform(0, 1))
 		for poly in polys:
-			if random.randint(0, b) > 6:
+			if random.uniform(0, 1) < xi:
 				polys2.append(poly)
 		result_line = cv2.polylines(result_line, polys2, False, 255, 3)
 		TS = ThinSS(img, result_rsf, result_line)
@@ -69,6 +80,6 @@ for FileName in FileNames:
 		S.append(lS)
 		P.append(lP)
 	dict = {'S': S, 'P': P}
-	if not os.path.exists("temp/StatisticSintData2/" + FileName):
-		os.mkdir("temp/StatisticSintData2/" + FileName)
-	scipy.io.savemat("temp/StatisticSintData2/" + FileName + "/" + FileName + "_S.mat", dict)
+	if not os.path.exists(StatisticPath + "StatisticSintData/" + FileName):
+		os.mkdir(StatisticPath + "StatisticSintData/" + FileName)
+	scipy.io.savemat(StatisticPath + "StatisticSintData/" + FileName + "/" + FileName + "_S.mat", dict)

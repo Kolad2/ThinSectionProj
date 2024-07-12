@@ -37,14 +37,14 @@ FileNames = ["B21-234a",    #0
              "B21-192b",    #17
              "19-5b"]       #18
 
-Path0 = "temp/StatisticSintData"
-FileNames = os.listdir(Path0)
+Path0 = "/media/kolad/HardDisk/StatisticData/"
+FileNames = os.listdir(Path0 + "StatisticSintData")
 intermax = 500
 
 for FileName in FileNames:
     print(FileName)
-    SintFile = "temp/StatisticSintData/" + FileName + "/" + FileName + "_S.mat"
-    CorFile = "temp/StatisticCorData/" + FileName + "/" + FileName + "_S.mat"
+    SintFile = Path0 + "StatisticSintData/" + FileName + "/" + FileName + "_S.mat"
+    CorFile = Path0 + "StatisticCorData/" + FileName + "/" + FileName + "_S.mat"
     if os.path.exists(CorFile):
         print("Файл коррекции существует, пропуск")
         continue
@@ -61,6 +61,6 @@ for FileName in FileNames:
         #for i in range(0,len(S[j])):
         #    hS[j][i] = S[j][i] + np.sum(st.uniform.rvs(size=P[j][i]))
     dict = {"S": hS, "P": P}
-    if not os.path.exists("temp/StatisticCorData/" + FileName):
-        os.mkdir("temp/StatisticCorData/" + FileName)
+    if not os.path.exists(Path0 + "StatisticCorData/" + FileName):
+        os.mkdir(Path0 + "StatisticCorData/" + FileName)
     scipy.io.savemat(CorFile, dict)
