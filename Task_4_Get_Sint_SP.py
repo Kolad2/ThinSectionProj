@@ -60,7 +60,6 @@ for FileName in FileNames:
 	# edge shape-file loading
 	edge_poly = get_shp_poly(Path_edges)
 	print("Segmentation start", FileName)
-
 	S = []
 	P = []
 	for i in range(0, intermax, 1):
@@ -70,7 +69,7 @@ for FileName in FileNames:
 		polys2 = []
 		xi = 0.3 * math.sqrt(random.uniform(0, 1))
 		for poly in polys:
-			if random.uniform(0, 1) < xi:
+			if random.uniform(0, 1) > xi:
 				polys2.append(poly)
 		result_line = cv2.polylines(result_line, polys2, False, 255, 3)
 		TS = ThinSS(img, result_rsf, result_line)
