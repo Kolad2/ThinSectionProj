@@ -13,7 +13,7 @@ import math
 import multiprocessing as mp
 
 Path0 = "/media/kolad/HardDisk/ThinSection"
-StatisticPath = "temp/"
+StatisticPath = "/media/kolad/HardDisk/StatisticData/"
 FileNames = os.listdir(Path0)
 intermax = 500
 
@@ -29,7 +29,7 @@ else:
 def GetParams(img, polys, edge_poly, result_rsf):
 	result_line = np.zeros(img.shape[0:2], dtype=np.uint8)
 	loc_polys = []
-	xi = 0.3 * math.sqrt(random.uniform(0, 1))
+	xi = 0.3*math.sqrt(random.uniform(0, 1))
 	for poly in polys:
 		if random.uniform(0, 1) > xi:
 			loc_polys.append(poly)
@@ -81,35 +81,20 @@ def ImageProcessing(FileName):
 		# Создание общего списка
 		S = manager.list()
 		P = manager.list()
-		nw = 4
-		for i in range(0, 1, 1):
+		nw = 8
+		for i in range(0, 64, 1):
 			p = {}
-			print(t.time())
+			print(i)
+			#print(t.time())
 			for j in range(0, nw, 1):
 				p[j] = mp.Process(target=worker, args=(S, P, img, polys, edge_poly, result_rsf))
 				p[j].start()
 			for j in range(0, nw, 1):
 				p[j].join()
-			print(t.time())
+			#print(t.time())
 		S = list(S)
 		P = list(P)
-
-	len(S)
 	dict = {'S': S, 'P': P}
-
-	#print(dict)
-	exit()
-	# exit()
-	# for i in range(0, intermax, 1):
-	# 	print(FileName, i, "/", intermax, flush=True)
-	# 	print(t.time())
-	# 	lS, lP = GetParams(img, polys, edge_poly, result_rsf)
-	# 	print(t.time())
-	# 	S.append(lS)
-	# 	P.append(lP)
-	# 	exit()
-	# dict = {'S': S, 'P': P}
-
 	if not os.path.exists(StatisticPath + "StatisticSintData/" + FileName):
 		os.mkdir(StatisticPath + "StatisticSintData/" + FileName)
 	scipy.io.savemat(StatisticPath + "StatisticSintData/" + FileName + "/" + FileName + "_S.mat", dict)

@@ -52,7 +52,7 @@ for i in range(0, len(tb_stat["Номер Образца"])):
 
 
 xmin = 20
-f_bins = xmin*np.logspace(0,10,17,base=2)
+f_bins = xmin*np.logspace(0,5,180,base=2)
 xmax = f_bins[-1]
 numinter = 500
 
@@ -156,6 +156,34 @@ for i0, FileName in enumerate(FileNames):
     else:
         B[2] = 0
 
+    dist[0] = SE.lognorm(theta[0][0], theta[0][2])
+
+
+    w = 1 / np.abs(F_0_low[1:-1] - F_0_m[1:-1])
+    def TARGET(sigma, scale, bins, xmin, xmax, w, Fm):
+        dist = SE.lognorm(sigma, scale)
+        cdf = lambda x: (dist.cdf(x) - dist.cdf(xmin))/(dist.cdf(xmax) - dist.cdf(xmin))
+        Fk = cdf(bins)
+        dF = np.abs(Fk - Fm)
+        i = np.argmax(dF)
+        return dF[i]
+
+    def TG(sigma, scale):
+        return TARGET(sigma, scale, f_bins[1:-1], xmin, xmax, w, F_0_m[1:-1])
+
+    def Solve():
+        res = minimize(lambda x: TG(x[0], x[1]),
+                       [theta[0][0], theta[0][2]],
+                       bounds=((1e-3, None), (1e-3, None)),
+                       method='Nelder-Mead', tol=1e-6)
+        return res.x[0], 0, res.x[1]
+
+    print(theta[0])
+    theta[0] = Solve()
+    print(theta[0])
+    dist[0] = SE.lognorm(theta[0][0], theta[0][2])
+    F1 = (dist[0].cdf(f_bins) - dist[0].cdf(xmin))/(dist[0].cdf(xmax) - dist[0].cdf(xmin))
+    #exit()
     #%%
     Theta["lognorm"]["boolean"].append(B[0])
     Theta["lognorm"]["sigma"].append(theta[0][0])
@@ -169,16 +197,17 @@ for i0, FileName in enumerate(FileNames):
     Theta["paretomod"]["alpha"].append(theta[2][0])
     Theta["paretomod"]["lambda"].append(theta[2][2])
     print(B)
-
-    continue
+    #exit()
+    #continue
 
 
     fig = plt.figure(figsize=(10, 5))
     ax = [fig.add_subplot(1, 1, 1)]
-    ax[0].fill_between(f_bins, F_0_low - F_0_m*0,  F_0_height - F_0_m*0,color='grey')
-    ax[0].plot(f_bins, F[0] - F_0_m*0, color='black')
-    ax[0].plot(f_bins, F[1] - F_0_m*0, color='blue')
-    ax[0].plot(f_bins, F[2] - F_0_m*0, color='red')
+    ax[0].fill_between(f_bins, F_0_low - F_0_m*1,  F_0_height - F_0_m*1,color='grey')
+    ax[0].plot(f_bins, F[0] - F_0_m*1, color='black')
+    ax[0].plot(f_bins, F1 - F_0_m * 1, color='black')
+    ax[0].plot(f_bins, F[1] - F_0_m*1, color='blue')
+    ax[0].plot(f_bins, F[2] - F_0_m*1, color='red')
     ax[0].set_xscale('log')
     #ax[0].set_ylim((f_0_low[-1], f_0_height[0]))
     ax[0].set_xlim((f_bins[0], f_bins[-1]))
@@ -251,9 +280,9 @@ with open('temp/StatisticResult.csv', 'w', encoding='UTF8', newline='') as f:
                 round(Theta["weibull"]["boolean"][i], 2),
                 round(Theta["weibull"]["alpha"][i], 2),
                 round(Theta["weibull"]["lambda"][i], 2),
-                round(Theta["pareto"]["boolean"][i], 2),
-                round(Theta["pareto"]["alpha"][i], 2),
-                round(Theta["pareto"]["lambda"][i], 2)]
+                round(Theta["paretomod"]["boolean"][i], 2),
+                round(Theta["paretomod"]["alpha"][i], 2),
+                round(Theta["paretomod"]["lambda"][i], 2)]
         # write the data
         writer.writerow(data)
 
