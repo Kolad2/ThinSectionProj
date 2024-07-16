@@ -95,8 +95,8 @@ class gengamma:
     def cdf(self, x):
         return cdf_gengamma(x, self.a, self.b, self.lam)
 
-    def sumlogpdf(self, x, MlnX):
-        W1 = -math.ln(gamma(self.a)) + math.ln(self.b) - math.ln(lam)
-        W2 = (self.a*self.b-1)*(MlnX - math.ln(lam))
-        W3 = -np.mean(np.power(x/lam, b))
+    def meanlogpdf(self, x, MlnX):
+        W1 = -math.ln(gamma(self.a)) + math.ln(self.b) - math.ln(self.lam)
+        W2 = (self.a*self.b-1)*(MlnX - math.ln(self.lam))
+        W3 = -np.mean(np.power(x/self.lam, self.b))
         return W1 + W2 + W3

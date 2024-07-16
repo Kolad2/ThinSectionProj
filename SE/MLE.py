@@ -50,6 +50,17 @@ class MLE:
                        method='Nelder-Mead', tol=1e-3)
         return res.x[0], 0, res.x[1]
 
+    def Gengamma(self):
+        MlnX = np.mean(np.ln(X))
+        def TG(x):
+            dist = gengamma(x[0], x[1], x[2])
+            return dist.meanlogpdf(X, MlnX) - np.ln(dist.cdf(xmax) - dist.cdf(xmin))
+
+        res = minimize(lambda x: -TG(x),
+                       [1, 1, xmin], bounds=((1e-3, None), (1e-3, None), (1e-3, None)),
+                       method='Nelder-Mead', tol=1e-3)
+        return res.x[0], 0, res.x[1]
+
 
 def GetThetaExpon(X, xmin, xmax):
     theta = st.expon.fit(X, floc=0)
@@ -60,7 +71,6 @@ def GetThetaExpon(X, xmin, xmax):
     return 0, res.x[0]
 
 def GetThetaPareto(X, xmin, xmax):
-    a = 1 + 1 / (np.mean(np.log(X)) - np.log(xmin))
     Tg = Targets(X, xmin, xmax)
     res = minimize(lambda x: -Tg.pareto(x[0], x[1]),
                    [2, xmin/2], bounds=((1+1e-3, None), (0, xmin)),
