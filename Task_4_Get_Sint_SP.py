@@ -63,7 +63,7 @@ def ImageProcessing(FileName):
 	if not os.path.exists(Path_edges + ".shp"):
 		print("Шейп файл границ не найден")
 		return
-	if os.path.exists("temp/StatisticSintData/" + FileName + "/" + FileName + "_S.mat"):
+	if os.path.exists(StatisticPath + "StatisticSintData/" + FileName + "/" + FileName + "_S.mat"):
 		print("Найдена копия мат файла, пропуск")
 		return
 	# image loading
@@ -81,8 +81,8 @@ def ImageProcessing(FileName):
 		# Создание общего списка
 		S = manager.list()
 		P = manager.list()
-		nw = 8
-		for i in range(0, 64, 1):
+		nw = 4
+		for i in range(0, 128, 1):
 			p = {}
 			print(i)
 			#print(t.time())

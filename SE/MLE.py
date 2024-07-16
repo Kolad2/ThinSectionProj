@@ -51,15 +51,15 @@ class MLE:
         return res.x[0], 0, res.x[1]
 
     def Gengamma(self):
-        MlnX = np.mean(np.ln(X))
+        MlnX = np.mean(np.log(self.X))
         def TG(x):
             dist = gengamma(x[0], x[1], x[2])
-            return dist.meanlogpdf(X, MlnX) - np.ln(dist.cdf(xmax) - dist.cdf(xmin))
+            return dist.meanlogpdf(self.X, MlnX) - np.log(dist.cdf(self.xmax) - dist.cdf(self.xmin))
 
         res = minimize(lambda x: -TG(x),
-                       [1, 1, xmin], bounds=((1e-3, None), (1e-3, None), (1e-3, None)),
+                       [1, 1, self.xmin], bounds=((1e-3, None), (1e-3, None), (1e-3, None)),
                        method='Nelder-Mead', tol=1e-3)
-        return res.x[0], 0, res.x[1]
+        return res.x[0], res.x[1], 0, res.x[2]
 
 
 def GetThetaExpon(X, xmin, xmax):

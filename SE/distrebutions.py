@@ -77,7 +77,7 @@ class lognorm:
     def cdf(self, x):
         return cdf_lognorm(x, self.sigma, self.scale)
 
-def сdf_gengamma(x, a, b, lam):
+def cdf_gengamma(x, a, b, lam):
     return gammainc(a, np.power(x/lam, b))
 
 def pdf_gengamma(x,a,b,lam):
@@ -96,7 +96,7 @@ class gengamma:
         return cdf_gengamma(x, self.a, self.b, self.lam)
 
     def meanlogpdf(self, x, MlnX):
-        W1 = -math.ln(gamma(self.a)) + math.ln(self.b) - math.ln(self.lam)
-        W2 = (self.a*self.b-1)*(MlnX - math.ln(self.lam))
+        W1 = -math.log(gamma(self.a)) + math.log(self.b) - math.log(self.lam)
+        W2 = (self.a*self.b-1)*(MlnX - math.log(self.lam))
         W3 = -np.mean(np.power(x/self.lam, self.b))
         return W1 + W2 + W3
