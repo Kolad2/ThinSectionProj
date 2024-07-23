@@ -54,6 +54,8 @@ for FileName in FileNames:
     hS = [[] for i in range(0, intermax)]
     for j in range(0, intermax):
         mask = S[j] > 5
+        #print('S',len(S[j]))
+        #print('P',len(P[j]))
         S[j] = S[j][mask]
         P[j] = P[j][mask]
         hS[j] = np.empty(len(S[j]), dtype=float)

@@ -12,13 +12,17 @@ import matplotlib as mpl
 import matplotlib.font_manager as font_manager
 from matplotlib.legend_handler import HandlerTuple
 from matplotlib.legend_handler import HandlerStepPatch
+import matplotlib.patheffects as path_effects
+from ScaleLine import plotScaleLine as psl
+import scipy
+
 
 Path0 = "/media/kolad/HardDisk/ThinSection"
 PathExit = "/media/kolad/HardDisk/StatisticData/PicturesSegment/"
 FileNames = os.listdir(Path0)
 
 for FileName in FileNames:
-	FileName = "B21-51b"
+	#FileName = "B21-51b"
 	print("Start", FileName)
 	Path_dir = Path0 + "/" + FileName + "/"
 	Path_img = Path_dir + "Picture" + "/" + FileName + ".tif"
@@ -37,6 +41,13 @@ for FileName in FileNames:
 	if not os.path.exists(Path_edges + ".shp"):
 		print("Шейп файл границ не найден")
 		continue
+
+	StatisticSintPath = "/media/kolad/HardDisk/StatisticData/StatisticSintData/"
+	path = StatisticSintPath + FileName
+	if not os.path.exists(path):
+		print("Синтетик не найден, пропуск")
+		continue
+
 	# image loading
 	img = cv2.imread(Path_img)
 	img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -58,7 +69,7 @@ for FileName in FileNames:
 	pic = [None, None, None, None, None]
 	d = 512
 	x0 = 3500
-	y0 = 4500
+	y0 = 3500
 	lab_image = cv2.cvtColor(img[y0:y0 + d, x0:x0 + d], cv2.COLOR_RGB2Lab)
 	pic[0], _, _ = cv2.split(lab_image)
 	pic[1] = result_line[y0:y0 + d, x0:x0 + d]
@@ -78,36 +89,45 @@ for FileName in FileNames:
 		pic[4][pic[4] == i] = np.random.randint(50, 254)
 	pic[4] = pic[4].astype(np.uint8)
 
+	# font = mpl.font_manager.FontProperties(fname="/usr/share/fonts/truetype/msttcorefonts/times.ttf",
+	#                                        style='normal', size=16)
+	#
+	# Y, X = np.indices((d, d))
+	#
+	# fig = plt.figure(figsize=(14, 9))
+	# fig.suptitle(FileName, fontsize=16)
+	# ax = [fig.add_subplot(2, 3, 1),
+	#       fig.add_subplot(2, 3, 2),
+	#       fig.add_subplot(2, 3, 3),
+	#       fig.add_subplot(2, 3, 4),
+	#       fig.add_subplot(2, 3, 5)]
+	# chars = ["a","c","d","b","e"]
+	#
+	# patch = mpl.lines.Line2D([0], [0], color='black', label='0.1 мм', linestyle='solid',
+	#                        linewidth=1, marker='|')
+	# for i in range(0, 5):
+	# 	ax[i].pcolor(X*0.25, Y*0.25, cv2.merge((pic[i], pic[i], pic[i])))
+	# 	ax[i].set_xlabel(chars[i] +")")
+	# 	start = [0.79, 0.1]
+	# 	end = [0.97, 0.1]
+	# 	psl(ax[i],start,end)
+	# 	midle = [112, 17]
+	# 	text = ax[i].annotate('25мкм', xy=midle, ha='center', color='black', fontproperties=font)
+	# 	text.set_path_effects([path_effects.Stroke(linewidth=3, foreground='white'), path_effects.Normal()])
+	# 	ax[i].get_xaxis().set_visible(False)
+	# 	ax[i].get_yaxis().set_visible(False)
+	#
+	# fig.savefig(PathExit + FileName + "_pf_S.png")
+	# plt.show()
+	# plt.close("all")
 
 
-	Y, X = np.indices((d, d))
+	PIC = cv2.merge((pic[0], pic[0], pic[0]))
+	SEG = cv2.merge((pic[4], pic[4], pic[4]))
+	dict = {"PIC":PIC, "SEG": SEG}
+	scipy.io.savemat(StatisticSintPath + FileName + "/" + FileName + "_pics.mat", dict)
 
-	fig = plt.figure(figsize=(14, 9))
-	fig.suptitle(FileName, fontsize=16)
-	ax = [fig.add_subplot(2, 3, 1),
-	      fig.add_subplot(2, 3, 2),
-	      fig.add_subplot(2, 3, 3),
-	      fig.add_subplot(2, 3, 4),
-	      fig.add_subplot(2, 3, 5)]
-	chars = ["a","c","d","b","e"]
-
-	patch = mpl.lines.Line2D([0], [0], color='black', label='0.1 мм', linestyle='solid',
-	                       linewidth=1, marker='|')
-	for i in range(0, 5):
-		ax[i].pcolor(X*0.25, Y*0.25, cv2.merge((pic[i], pic[i], pic[i])))
-		ax[i].set_xlabel(chars[i] +")")
-		ax[i].legend(
-			handles=[patch],
-		    handlelength=2.0,
-		    handleheight=1.5,
-		    framealpha=1,
-			prop=font)
-		ax[i].get_xaxis().set_visible(False)
-		ax[i].get_yaxis().set_visible(False)
-
-	fig.savefig(PathExit + FileName + "_pf_S.png")
-	plt.show()
-	plt.close("all")
+	continue
 	exit()
 	#S, P = TS.get_SP()
 	#dict = {'S': S, 'P': P}

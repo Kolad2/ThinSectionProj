@@ -19,7 +19,8 @@ import csv
 import cv2
 import pandas as pd
 import SE.StatisticEstimation as SE
-
+import matplotlib as mpl
+import matplotlib.patheffects as path_effects
 import SE
 
 StatisticPath = "/media/kolad/HardDisk/StatisticData/"
@@ -49,7 +50,7 @@ Theta = {
 
 for i in range(0, len(tb_stat["Номер Образца"])):
     h = tb_stat["Номер Образца"].values[i]
-    print(h)
+    #print(h)
 
 
 xmin = 20
@@ -60,7 +61,6 @@ numinter = 500
 
 for i0, FileName in enumerate(FileNames):
     print(FileName,"(", i0+1 , "/", len(FileNames), ")")
-
     # if len(tb_stat[tb_stat["Номер Образца"] == FileName]) > 0:
     #     print("Статистика образца найдена, пропуск")
     #     continue
@@ -135,53 +135,12 @@ for i0, FileName in enumerate(FileNames):
         dist_cdf[i] = lambda x: ((dist[i].cdf(x) - dist[i].cdf(xmin)) * C[i])
         f[i] = dist_pdf[i](f_bins)
         F[i] = dist_cdf[i](f_bins)
-        B[i] = GetBool(F_0_low, F_0_height, F[i])
 
-
-    # mf = {}
-    # mf[0] = (F[0][1:] - F[0][0:-1]) / (f_bins[1:] - f_bins[0:-1])
-    # mf[1] = (F[1][1:] - F[1][0:-1]) / (f_bins[1:] - f_bins[0:-1])
-    # mf[2] = (F[2][1:] - F[2][0:-1]) / (f_bins[1:] - f_bins[0:-1])
-    #
-    # B = {}
-    # B[0] = GetBool(f_0_low, f_0_height, mf[0])
-    # B[1] = GetBool(f_0_low, f_0_height, mf[1])
-    # index = np.searchsorted(f_bins, theta[2][2])
-    # if(index < len(mf[2])):
-    #     B[2] = GetBool(f_0_low[index:], f_0_height[index:], mf[2][index:])
-    # else:
-    #     B[2] = 0
-    # B[3] = GetBool(f_0_low, f_0_height, mf[3])
-    # dist[0] = SE.lognorm(theta[0][0], theta[0][2])
-    #
-    #
-    # w = 1 / np.abs(F_0_low[1:-1] - F_0_m[1:-1])
-    # def TARGET(sigma, scale, bins, xmin, xmax, w, Fm):
-    #     dist = SE.lognorm(sigma, scale)
-    #     cdf = lambda x: (dist.cdf(x) - dist.cdf(xmin))/(dist.cdf(xmax) - dist.cdf(xmin))
-    #     Fk = cdf(bins)
-    #     dF = np.abs(Fk - Fm)
-    #     i = np.argmax(dF)
-    #     return dF[i]
-    #
-    # def TG(sigma, scale):
-    #     return TARGET(sigma, scale, f_bins[1:-1], xmin, xmax, w, F_0_m[1:-1])
-    #
-    # def Solve():
-    #     res = minimize(lambda x: TG(x[0], x[1]),
-    #                    [theta[0][0], theta[0][2]],
-    #                    bounds=((1e-3, None), (1e-3, None)),
-    #                    method='Nelder-Mead', tol=1e-6)
-    #     return res.x[0], 0, res.x[1]
-    #
-    # print(theta[0])
-    # theta[0] = Solve()
-    # print(theta[0])
-    # dist[0] = SE.lognorm(theta[0][0], theta[0][2])
-    # F1 = (dist[0].cdf(f_bins) - dist[0].cdf(xmin))/(dist[0].cdf(xmax) - dist[0].cdf(xmin))
-    #exit()
-    #%%
-
+    B[0] = GetBool(F_0_low, F_0_height, F[0])
+    B[1] = GetBool(F_0_low, F_0_height, F[1])
+    index = np.searchsorted(f_bins, theta[2][2], side = 'right')
+    B[2] = GetBool(F_0_low[index:], F_0_height[index:], F[2][index:])
+    B[3] = GetBool(F_0_low, F_0_height, F[3])
 
     Theta["Name"].append(FileName)
     #%%
@@ -202,23 +161,114 @@ for i0, FileName in enumerate(FileNames):
     Theta["gengamma"]["b"].append(theta[3][1])
     Theta["gengamma"]["lambda"].append(theta[3][3])
     print(B)
+    #continue
+    #%%
+    Path_img = Path_dir + "Picture" + "/" + FileName + ".tif"
+    img = cv2.imread(Path_img)
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    d = 512
+    x0 = 3000
+    y0 = 3500
+    #%%
+    font = mpl.font_manager.FontProperties(fname="/usr/share/fonts/truetype/msttcorefonts/times.ttf",
+                           style='normal', size=16)
+
+    dictpics = sp.io.loadmat(StatisticPath + "StatisticSintData/" + FileName + "/" + FileName + "_pics.mat", squeeze_me=True)
+    #%%
+    fig = plt.figure(figsize=(16, 4))
+    ax = [fig.add_subplot(1, 4, 1),
+          fig.add_subplot(1, 4, 2),
+          fig.add_subplot(1, 4, 3),
+          fig.add_subplot(1, 4, 4)]
+
+    #%%
+    lab_image = cv2.cvtColor(img[y0:y0 + d, x0:x0 + d], cv2.COLOR_RGB2Lab)
+    lab_image, _, _ = cv2.split(lab_image)
+    ax[0].imshow(dictpics["PIC"], origin='lower')
+    ax[0].get_xaxis().set_visible(False)
+    ax[0].get_yaxis().set_visible(False)
+    ax[1].imshow(dictpics["SEG"], origin='lower')
+    ax[1].get_xaxis().set_visible(False)
+    ax[1].get_yaxis().set_visible(False)
+    #%%
+    v = 0
+    ax[2].fill_between(f_bins*(0.25**2), F_0_low - F_0_m*v,  F_0_height - F_0_m*v,color='grey',label='1')
+    #ax[1].plot(f_bins*(0.25**2), F[0] - F_0_m*v, color='black',label='2')
+    #ax[1].plot(f_bins*(0.25**2), F[1] - F_0_m*v, color='black',linestyle='--',label='3')
+    #ax[1].plot(f_bins*(0.25**2), F[2] - F_0_m*v, color='black',linestyle='-.',label='4')
+    #ax[1].plot(f_bins*(0.25**2), F[3] - F_0_m*1, color='green')
+    ax[2].set_xscale('log')
+    #ax[2].legend(prop=font)
+    #ax[1].set_ylim((F_0_low[-1], F_0_height[0]))
+    ax[2].set_ylim((0, 1))
+    ax[2].set_xlim((f_bins[0]*(0.25**2), f_bins[-1]*(0.25**2)))
+    for label in ax[2].get_yaxis().get_ticklabels():
+        label.set_fontproperties(font)
+    for label in ax[2].get_xaxis().get_ticklabels():
+        label.set_fontproperties(font)
+    ax[2].set_xlabel("s, мкм$^2$", fontproperties=font)
+    ax[2].set_ylabel(r"F, усл.ед.", fontproperties=font)
+    # %%
+    v = 1
+    ax[3].fill_between(f_bins * (0.25 ** 2), F_0_low - F_0_m * v, F_0_height - F_0_m * v, color='grey', label='1')
+    ax[3].plot(f_bins*(0.25**2), F[0] - F_0_m*v, color='black',label='2')
+    ax[3].plot(f_bins*(0.25**2), F[1] - F_0_m*v, color='black',linestyle='--',label='3')
+    ax[3].plot(f_bins*(0.25**2), F[2] - F_0_m*v, color='black',linestyle='-.',label='4')
+    #ax[3].plot(f_bins*(0.25**2), F[3] - F_0_m*v, color='green')
+    ax[3].set_xscale('log')
+    #ax[3].set_ylim((0, 1))
+
+    ax[3].set_xlim((f_bins[0] * (0.25 ** 2), f_bins[-1] * (0.25 ** 2)))
+    for label in ax[3].get_yaxis().get_ticklabels():
+        label.set_fontproperties(font)
+    for label in ax[3].get_xaxis().get_ticklabels():
+        label.set_fontproperties(font)
+    ax[3].set_xlabel("s, мкм$^2$",fontproperties=font)
+    ax[3].set_ylabel(r"F-F$_{\text{m}}$, усл.ед.", fontproperties=font)
+    ax[3].legend(prop=font, loc='upper right', ncol=2)
+    # %%
+    # Координаты начала и конца масштабной линейки
+    def plotScaleLine(ax, start, end):
+        dx = (start[0] - end[0])
+        dy = (start[1] - end[1])
+        ca = dx/math.sqrt(dx*dx + dy*dy)
+        sa = dy/math.sqrt(dx*dx + dy*dy)
+        ax.plot([start[0], end[0]], [start[1], end[1]], transform=ax.transAxes, color='white', lw=5)
+        ax.plot(
+            [start[0] + 0.01*sa, start[0] - 0.01*sa],
+            [start[1] - 0.01*ca, start[1] + 0.01*ca], transform=ax.transAxes, color='white', lw=5)
+        ax.plot(
+            [end[0] - 0.01*sa, end[0] + 0.01*sa],
+            [end[1] + 0.01*ca, end[1] - 0.01*ca], transform=ax.transAxes, color='white', lw=5)
+        #
+        ax.plot([start[0], end[0]], [start[1], end[1]], transform=ax.transAxes, color='black', lw=2)
+        ax.plot(
+            [start[0]-0.01*sa, start[0]+0.01*sa],
+            [start[1]+0.01*ca, start[1]-0.01*ca], transform=ax.transAxes, color='black', lw=2)
+        ax.plot(
+            [end[0] - 0.01*sa, end[0] + 0.01*sa],
+            [end[1] + 0.01*ca, end[1] - 0.01*ca], transform=ax.transAxes, color='black', lw=2)
+
+
+    start = [0.79, 0.1]
+    end = [0.97, 0.1]
+    plotScaleLine(ax[0], start, end)
+    plotScaleLine(ax[1], start, end)
+    start = ax[0].transAxes.transform(start) - [-60, 15]
+    end = ax[0].transAxes.transform(end) - [-60, 15]
+    print(start)
+    text = ax[0].annotate('25мкм', xy=(450, 75), ha='center', color='black', fontproperties=font)
+    text.set_path_effects([path_effects.Stroke(linewidth=3, foreground='white'),path_effects.Normal()])
+    text = ax[1].annotate('25мкм', xy=(450, 75), ha='center', color='black', fontproperties=font)
+    text.set_path_effects([path_effects.Stroke(linewidth=3, foreground='white'), path_effects.Normal()])
+    #
+    fig.tight_layout()
+    fig.savefig("temp/StatPictures/" + FileName + "_pf_S.png")
+    #plt.show()
+    plt.close("all")
+
     continue
-
-
-    fig = plt.figure(figsize=(10, 5))
-    ax = [fig.add_subplot(1, 1, 1)]
-    ax[0].fill_between(f_bins, F_0_low - F_0_m*1,  F_0_height - F_0_m*1,color='grey')
-    ax[0].plot(f_bins, F[0] - F_0_m*1, color='black')
-    ax[0].plot(f_bins, F[1] - F_0_m*1, color='blue')
-    ax[0].plot(f_bins, F[2] - F_0_m*1, color='red')
-    ax[0].plot(f_bins, F[3] - F_0_m*1, color='green')
-    ax[0].set_xscale('log')
-    #ax[0].set_ylim((f_0_low[-1], f_0_height[0]))
-    ax[0].set_xlim((f_bins[0], f_bins[-1]))
-    plt.show()
-
-    exit()
-
+    #exit()
     #%%
     Path_img = Path_dir + "Picture" + "/" + FileName + ".tif"
     img = cv2.imread(Path_img)
